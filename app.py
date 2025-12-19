@@ -5,7 +5,7 @@ import requests
 # --- YAPILANDIRMA ---
 GOOGLE_API_KEY = "AIzaSyBD7bkSlO50pqkOlHjPj7LYBddP8J25REk"
 genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+models/ = genai.GenerativeModel('gemini-1.5-flash')
 
 st.set_page_config(page_title="Xreas AI - Content Pro", layout="wide")
 
@@ -60,4 +60,5 @@ else:
 
 # --- FOOTER ---
 st.sidebar.markdown("---")
+
 st.sidebar.write("Developed with ❤️ for R10")
