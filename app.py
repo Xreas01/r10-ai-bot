@@ -2,14 +2,10 @@ import streamlit as st
 import google.generativeai as genai
 
 # --- YAPILANDIRMA ---
-# Ücretsiz (Free Tier) API Anahtarın
 GOOGLE_API_KEY = "AIzaSyBD7bkSlO50pqkOlHjPj7LYBddP8J25REk"
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# Free Tier'da en stabil çalışan ana model ismi
-model = genai.GenerativeModel('gemini-pro')
-
-st.set_page_config(page_title="Xreas AI - İçerik Botu", layout="wide", page_icon="🤖")
+st.set_page_config(page_title="Xreas AI - Akıllı Editör", layout="wide", page_icon="🤖")
 
 # --- GİRİŞ SİSTEMİ ---
 if "auth" not in st.session_state:
@@ -25,37 +21,51 @@ if not st.session_state.auth:
         else:
             st.error("Hatalı Şifre!")
 else:
-    # --- ANA PANEL ---
-    st.sidebar.title("🚀 Xreas AI v2.5")
-    st.sidebar.info("Mod: Ücretsiz Sürüm")
+    # --- MODEL SEÇİMİ (OTOMATİK) ---
+    def get_working_model():
+        try:
+            # Hesabındaki kullanılabilir modelleri listele
+            available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+            # Önce Flash, yoksa Pro, o da yoksa ilk bulduğunu seç
+            for target in ["models/gemini-1.5-flash", "models/gemini-pro"]:
+                if target in available_models:
+                    return genai.GenerativeModel(target)
+            return genai.GenerativeModel(available_models[0])
+        except:
+            return None
+
+    st.sidebar.title("🚀 Xreas AI v3.0")
+    st.sidebar.success("Model: Otomatik Optimize Edildi")
     
-    topic = st.sidebar.text_input("Anahtar Kelime:", placeholder="Örn: Araba bakımı")
-    
-    st.title("📝 Yapay Zeka İçerik Editörü")
-    st.write("Konunuzu yazın ve yapay zekanın makaleyi hazırlamasını bekleyin.")
+    topic = st.sidebar.text_input("Anahtar Kelime:", placeholder="Örn: Yapay zekanın geleceği")
+
+    st.title("📝 Akıllı İçerik Editörü")
+    st.info("Bu sürüm, API hatalarını önlemek için otomatik model taraması yapar.")
 
     if st.sidebar.button("İçerik Üret ✨"):
         if topic:
-            with st.spinner("İçerik hazırlanıyor..."):
+            with st.spinner("AI Modeli bağlanıyor ve içerik hazırlanıyor..."):
                 try:
-                    # En sade prompt yapısı
-                    prompt = f"Write a detailed blog post in Turkish about '{topic}'. Use SEO headers."
-                    response = model.generate_content(prompt)
-                    
-                    if response.text:
-                        # Görsel ve Metin Gösterimi
-                        clean_topic = topic.replace(" ", "_")
-                        img_url = f"https://pollinations.ai/p/{clean_topic}?width=800&height=400"
+                    current_model = get_working_model()
+                    if current_model:
+                        prompt = f"Write a professional SEO article in Turkish about '{topic}'. Include H1 and H2 headers."
+                        response = current_model.generate_content(topic)
                         
-                        st.image(img_url, caption="AI Kapak Görseli")
-                        st.markdown("---")
-                        st.markdown(response.text)
-                        st.success("İçerik başarıyla üretildi!")
+                        if response.text:
+                            # Görsel ve Metin Gösterimi
+                            clean_topic = topic.replace(" ", "_")
+                            img_url = f"https://pollinations.ai/p/{clean_topic}?width=800&height=400&seed=42"
+                            
+                            st.image(img_url, caption="Makale Görseli")
+                            st.markdown("---")
+                            st.markdown(response.text)
+                            st.success("İçerik başarıyla üretildi!")
+                    else:
+                        st.error("Hesabınızda uygun bir AI modeli bulunamadı.")
                 except Exception as e:
-                    st.error(f"Hata oluştu: {str(e)}")
-                    st.info("Not: API kotanız dolmuş olabilir veya anahtarınız pasif olabilir.")
+                    st.error(f"Teknik Hata: {str(e)}")
         else:
-            st.warning("Lütfen bir konu girin.")
+            st.warning("Lütfen bir konu başlığı girin.")
 
 # --- FOOTER ---
 st.sidebar.markdown("---")
