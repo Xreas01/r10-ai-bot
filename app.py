@@ -62,3 +62,4 @@ else:
 st.sidebar.markdown("---")
 
 st.sidebar.write("Developed with ❤️ for R10")
+
